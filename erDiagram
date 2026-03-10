@@ -1,0 +1,111 @@
+erDiagram
+    Department_tanvi {
+        int DepartmentId PK
+        varchar DepartmentName UNIQUE
+        int HeadDoctorId
+    }
+
+    Doctor_tanvi {
+        int DoctorId PK
+        varchar DoctorName
+        varchar Specialisation
+        decimal ConsultationFee
+        int DepartmentId FK
+        bit isActive
+    }
+
+    DoctorSchedule {
+        int ScheduleId PK
+        int DoctorId FK
+        varchar DayOfWeek
+        time StartTime
+        time EndTime
+    }
+
+    Patient_tanvi {
+        int PatientId PK
+        varchar PatientName
+        date DOB
+        varchar Phone
+        bit HasInsurance
+    }
+
+    Insurance2 {
+        int InsuranceId PK
+        int PatientId UNIQUE FK
+        varchar PolicyNumber
+        decimal CoveragePercent
+        decimal YearlyMaxAmount
+        decimal UsedAmount
+    }
+
+    Appointment_tanvi2 {
+        int AppointmentId PK
+        int PatientId FK
+        int DoctorId FK
+        date AppointementDate
+        time TimeSlot
+        varchar Status
+    }
+
+    MedicalRecord_tanvi {
+        int RecordId PK
+        int AppointmentId UNIQUE FK
+        varchar Diagnosis
+        varchar TreatmentPlan
+        bit RequiredFollowUp
+    }
+
+    Medicine {
+        int MedicineId PK
+        varchar MedicineName
+        decimal Price
+    }
+
+    Prescription_tanvi2 {
+        int PrescriptionId PK
+        int RecordId FK
+        int MedicineId FK
+        varchar Dosage
+        int DurationDays
+        int Quantity
+    }
+
+    LabTest {
+        int LabTestId PK
+        varchar TestName
+        decimal TestCost
+    }
+
+    OrderLabTest_tanvi {
+        int OrderedTestId PK
+        int RecordId FK
+        int LabTestId FK
+        varchar Result
+        bit IsAbnormal
+    }
+
+    Bill_tanvi {
+        int BillId PK
+        int AppointmentId UNIQUE FK
+        decimal ConsultationAmount
+        decimal MedicineAmount
+        decimal LabAmount
+        decimal InsuranceDiscount
+        decimal GSTAmount
+        decimal FinalAmount
+        varchar PaymentStatus
+    }
+
+    %% Relationships
+    Department_tanvi ||--o{ Doctor_tanvi : "has"
+    Doctor_tanvi ||--o{ DoctorSchedule : "schedules"
+    Patient_tanvi ||--o{ Appointment_tanvi2 : "books"
+    Doctor_tanvi ||--o{ Appointment_tanvi2 : "consults"
+    Appointment_tanvi2 ||--|| MedicalRecord_tanvi : "creates"
+    MedicalRecord_tanvi ||--o{ Prescription_tanvi2 : "prescribes"
+    Medicine ||--o{ Prescription_tanvi2 : "included"
+    MedicalRecord_tanvi ||--o{ OrderLabTest_tanvi : "orders"
+    LabTest ||--o{ OrderLabTest_tanvi : "contains"
+    Appointment_tanvi2 ||--|| Bill_tanvi : "generates"
+    Patient_tanvi ||--|| Insurance2 : "covered by"
