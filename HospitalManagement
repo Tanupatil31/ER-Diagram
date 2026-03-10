@@ -1,0 +1,895 @@
+use JIBE_Main_Training;
+
+create table Department_tanvi(
+DepartmentId int primary key identity(1,1),
+DepartmentName varchar(100) not null unique,
+HeadDoctorId int null
+)
+
+INSERT INTO Department_tanvi (DepartmentName, HeadDoctorId) VALUES
+('Cardiology', NULL),
+('Orthopedics', NULL),
+('Pathology', NULL);
+
+
+
+
+create table Doctor_tanvi(
+DoctorId int primary key identity(1,1),
+DoctorName varchar(100) not null,
+Specialisation varchar(100) not null,
+ConsultationFee Decimal(10,2) not null check(ConsultationFee>=0),
+DepartmentId int not null,
+isActive bit default 1,
+foreign key (DepartmentId) references Department_tanvi(DepartmentId)
+)
+
+INSERT INTO Doctor_tanvi (DoctorName, Specialisation, ConsultationFee, DepartmentId) VALUES
+('Dr. Meera Sharma', 'Cardiologist', 1500.00, 1),
+('Dr. Rajiv Menon', 'Cardiologist', 1600.00, 1),
+('Dr. Anita Desai', 'Orthopedic Surgeon', 1200.00, 2),
+('Dr. Karan Patel', 'Orthopedic Surgeon', 1300.00, 2),
+('Dr. Sneha Kapoor', 'Pathologist', 1000.00, 3),
+('Dr. Arjun Rao', 'Pathologist', 1100.00, 3),
+('Dr. Priya Nair', 'Cardiologist', 1700.00, 1),
+('Dr. Vivek Joshi', 'Orthopedic Surgeon', 1250.00, 2),
+('Dr. Neha Gupta', 'Pathologist', 1050.00, 3),
+('Dr. Sanjay Kulkarni', 'Cardiologist', 1800.00, 1);
+
+create table DoctorSchedule(
+ScheduleId int primary key identity(1,1),
+DoctorId int not null,
+DayOfWeek varchar(20) not null,
+StartTime Time not null,
+EndTime Time not null,
+foreign key (DoctorId) References Doctor_tanvi(DoctorId),
+check (StartTime<EndTime)
+)
+
+INSERT INTO DoctorSchedule (DoctorId, DayOfWeek, StartTime, EndTime) VALUES
+(1, 'Monday', '09:00', '12:00'),
+(2, 'Tuesday', '10:00', '13:00'),
+(3, 'Wednesday', '14:00', '17:00'),
+(4, 'Thursday', '09:00', '12:00'),
+(5, 'Friday', '11:00', '14:00'),
+(6, 'Monday', '15:00', '18:00'),
+(7, 'Tuesday', '09:00', '11:00'),
+(8, 'Wednesday', '10:00', '13:00'),
+(9, 'Thursday', '14:00', '17:00'),
+(10, 'Friday', '09:00', '12:00');
+
+create table Patient_tanvi(
+PatientId int primary key identity(1,1),
+PatientName varchar(100) not null,
+DOB Date not null,
+Phone varchar(10),
+HasInsurance bit default 0
+)
+
+INSERT INTO Patient_tanvi (PatientName, DOB, Phone, HasInsurance) VALUES
+('Tanvi Agarwal', '1990-05-12', '9876543210', 1),
+('Rohan Mehta', '1985-03-20', '9123456789', 0),
+('Sneha Verma', '2000-07-15', '9988776655', 1),
+('Amit Sharma', '1978-11-02', '8899001122', 0),
+('Priya Singh', '1995-01-25', '7766554433', 1),
+('Kunal Desai', '1988-09-18', '6655443322', 0),
+('Neha Kapoor', '1992-12-30', '7788990011', 1),
+('Arjun Rao', '1983-04-10', '9900112233', 0),
+('Meera Joshi', '1999-06-05', '8811223344', 1),
+('Sanjay Kulkarni', '1975-08-22', '7722334455', 0);
+
+insert into Patient_tanvi values('Rahul Patil','1975-08-22','7722334400',0);
+insert into Patient_tanvi values('Raj Patil','1975-08-22','9922334400',0);
+
+select * from patient_tanvi;
+
+
+create table Insurance2(
+InsuranceId int primary key identity(1,1),
+PatientId int unique not null,
+PolicyNumber varchar(50) not null,
+CoveragePercent Decimal(5,2) not null check(CoveragePercent between 0 and 100),
+YearlyMaxAmount decimal(12,2) not null check(YearlyMaxAmount>=0),
+UsedAmount decimal(12,2) default 0,
+foreign key(PatientId) references Patient_tanvi(PatientId)
+)
+INSERT INTO Insurance2 (PatientId, PolicyNumber, CoveragePercent, YearlyMaxAmount, UsedAmount) VALUES
+(1, 'POL12345', 80.00, 500000.00, 20000.00),
+(3, 'POL67890', 70.00, 300000.00, 15000.00),
+(5, 'POL11111', 90.00, 600000.00, 50000.00),
+(7, 'POL22222', 75.00, 400000.00, 10000.00),
+(9, 'POL33333', 85.00, 450000.00, 25000.00),
+(2, 'POL44444', 60.00, 250000.00, 5000.00),
+(4, 'POL55555', 65.00, 350000.00, 12000.00),
+(6, 'POL66666', 50.00, 200000.00, 8000.00),
+(8, 'POL77777', 55.00, 220000.00, 7000.00),
+(10, 'POL88888', 95.00, 700000.00, 60000.00);
+
+create table Appointment_tanvi2(
+AppointmentId int primary key identity(1,1),
+PatientId int not null,
+DoctorId int not null,
+AppointementDate date not null,
+TimeSlot time not null,
+Status varchar(20) check(Status in('Scheduled','Completed','Cancelled')) default 'Scheduled',
+foreign key(PatientId) references Patient_tanvi(PatientId),
+foreign key(DoctorId) references Doctor_tanvi(DoctorId),
+constraint uq_doctor_time2 unique (DoctorId,AppointementDate,TimeSlot)
+)
+ 
+INSERT INTO Appointment_tanvi2 (PatientId, DoctorId, AppointementDate, TimeSlot, Status) VALUES
+(1, 1, '2026-02-01', '09:30', 'Scheduled'),
+(2, 2, '2026-02-02', '10:30', 'Completed'),
+(3, 3, '2026-02-03', '14:30', 'Cancelled'),
+(4, 4, '2026-02-04', '09:30', 'Scheduled'),
+(5, 5, '2026-02-05', '11:30', 'Scheduled'),
+(6, 6, '2026-02-06', '15:30', 'Completed'),
+(7, 7, '2026-02-07', '09:30', 'Scheduled'),
+(8, 8, '2026-02-08', '10:30', 'Scheduled'),
+(9, 9, '2026-02-09', '14:30', 'Scheduled'),
+(10, 10, '2026-02-10', '09:30', 'Scheduled');
+
+insert into Appointment_tanvi2 values (6, 5, '2026-02-11', '12:30', 'Completed'),(7, 5, '2026-02-25', '01:30', 'Scheduled');
+insert into Appointment_tanvi2 values (1, 5, '2026-02-22', '12:30', 'Completed'),(2, 5, '2026-02-10', '01:30', 'Completed');
+insert into Appointment_tanvi2 values (6, 4, '2026-03-11', '11:30', 'Completed'),(3, 4, '2026-03-25', '01:00', 'Scheduled'),
+                                      (2, 3, '2026-03-22', '12:30', 'Completed'),(4, 3, '2026-03-10', '01:30', 'Scheduled');
+
+insert into Appointment_tanvi2 values (5, 2, '2026-03-10', '09:30', 'Scheduled');
+insert into Appointment_tanvi2 values (11, 2, '2026-03-12', '09:30', 'Scheduled');
+insert into Appointment_tanvi2 values (12, 2, '2026-03-22', '10:30', 'Scheduled');
+
+
+
+
+                                      
+
+select * from Appointment_tanvi2;
+
+
+
+create table MedicalRecord_tanvi(
+RecordId int primary key identity(1,1),
+AppointmentId int unique not null,
+Diagnosis varchar(500),
+TreatmentPlan varchar(500),
+RequiredFollowUp bit default 0,
+foreign key (AppointmentId) references Appointment_tanvi2(AppointmentId)
+)
+
+INSERT INTO MedicalRecord_tanvi (AppointmentId, Diagnosis, TreatmentPlan, RequiredFollowUp) VALUES
+(1, 'Hypertension', 'Lifestyle changes + medication', 1),
+(2, 'Migraine', 'Pain management therapy', 0),
+(3, 'Fracture', 'Surgery + physiotherapy', 1),
+(4, 'Flu', 'Rest + antiviral medication', 0),
+(5, 'Skin Allergy', 'Topical cream + antihistamines', 0),
+(6, 'Cancer Screening', 'Chemotherapy sessions', 1),
+(7, 'X-ray Review', 'Further imaging required', 1),
+(8, 'Diabetes', 'Insulin therapy', 1),
+(9, 'Ear Infection', 'Antibiotics', 0),
+(10, 'Acid Reflux', 'Dietary changes + medication', 0);
+
+insert into MedicalRecord_tanvi values(22,'Diabetes','Insulin',1);
+insert into MedicalRecord_tanvi values(23,'Migraine','Pain management therapy',1);
+
+select * from MedicalRecord_tanvi;
+
+
+
+create table Medicine(
+MedicineId int primary key identity(1,1),
+MedicineName varchar(100) not null,
+Price Decimal(10,2) not null check(Price>=0)
+)
+INSERT INTO Medicine (MedicineName, Price) VALUES
+('Paracetamol', 20.00),
+('Ibuprofen', 50.00),
+('Amoxicillin', 100.00),
+('Cetirizine', 30.00),
+('Insulin', 500.00),
+('Omeprazole', 200.00),
+('Metformin', 150.00),
+('Cough Syrup', 80.00),
+('Vitamin D', 120.00),
+('Antacid', 40.00);
+insert into Medicine values ('Ommi D', 80.00),
+('Vitamin B3', 120.00),
+('Antacid v2', 40.00);
+
+insert into medicine values('Omeprazole',300.00);
+select * from medicine;
+
+
+create table Prescription_tanvi2(
+PrescriptionId int primary key identity(1,1),
+RecordId int not null,
+MedicineId int not null,
+Dosage varchar(100),
+DurationDays int,
+Quantity int check(Quantity>0),
+foreign key (MedicineId) references Medicine(MedicineId),
+foreign key (RecordId) references MedicalRecord_tanvi(RecordId)
+)
+INSERT INTO Prescription_tanvi2 (RecordId, MedicineId, Dosage, DurationDays, Quantity) VALUES
+(1, 1, '500mg twice daily', 5, 10),
+(2, 2, '200mg once daily', 7, 7),
+(3, 3, '250mg thrice daily', 10, 30),
+(4, 4, '10mg once daily', 3, 3),
+(5, 5, '10 units daily', 30, 30),
+(6, 6, '20mg once daily', 15, 15),
+(7, 7, '500mg twice daily', 20, 40),
+(8, 8, '10ml thrice daily', 7, 21),
+(9, 9, '1000 IU daily', 30, 30),
+(10, 10, '1 tablet after meals', 10, 10);
+
+insert into Prescription_tanvi2 values (13,14,'500mg twice daily',7,20);
+
+create table LabTest(
+LabTestId int primary key identity(1,1),
+TestName varchar(100) not null,
+TestCost decimal(10,2) not null check (TestCost>=0)
+)
+select* from LabTest;
+INSERT INTO LabTest (TestName, TestCost) VALUES
+('Blood Test', 500.00),
+('X-Ray', 1000.00),
+('MRI Scan', 5000.00),
+('CT Scan', 4000.00),
+('Urine Test', 300.00),
+('ECG', 800.00),
+('Liver Function Test', 1200.00),
+('Thyroid Test', 700.00),
+('Cholesterol Test', 1000.0);
+insert into LabTest values ('Vitamin D Test', 600.00);
+
+create table OrderLabTest_tanvi(
+OrderedTestId int primary key identity(1,1),
+RecordId int not null,
+LabTestId int not null,
+Result varchar(500),
+IsAbnormal bit default 0,
+foreign key(RecordId) references MedicalRecord_tanvi(RecordId),
+foreign key (LabTestId) references LabTest(LabTestId) 
+)
+select * from OrderLabTest_tanvi;
+INSERT INTO OrderLabTest_tanvi (RecordId, LabTestId, Result, IsAbnormal) VALUES
+(1, 1, 'Normal blood count', 0),
+(2, 2, 'Minor fracture detected', 1),
+(3, 3, 'MRI shows no abnormality', 0),
+(4, 4, 'CT scan reveals mild infection', 1),
+(5, 5, 'Urine test normal', 0),
+(6, 6, 'ECG shows irregular rhythm', 1),
+(7, 7, 'Liver enzymes elevated', 1),
+(8, 8, 'Thyroid levels normal', 0),
+(9, 9, 'Cholesterol slightly high', 1),
+(10, 10, 'Vitamin D deficiency detected', 1);
+
+insert into OrderLabTest_tanvi values(13,3,'MRI shows no abnormality',1);
+
+create table Bill_tanvi(
+BillId int primary key identity(1,1),
+AppointmentId int unique not null,
+ConsultationAmount decimal(12,2),
+MedicineAmount decimal(12,2),
+LabAmount decimal(12,2),
+InsuranceDiscount decimal(12,2),
+GSTAmount decimal(12,2),
+FinalAmount decimal(12,2),
+PaymentStatus varchar(20) check (PaymentStatus in ('Paid','Unpaid')) default 'Unpaid',
+foreign key (AppointmentId) references Appointment_tanvi2(AppointmentId)
+)
+select * from Bill_Tanvi;
+INSERT INTO Bill_tanvi (AppointmentId, ConsultationAmount, MedicineAmount, LabAmount, InsuranceDiscount, GSTAmount, FinalAmount, PaymentStatus) VALUES
+(1, 1500.00, 200.00, 500.00, 300.00, 120.00, 2020.00, 'Paid'),
+(2, 1600.00, 150.00, 1000.00, 400.00, 150.00, 2500.00, 'Unpaid'),
+(3, 1200.00, 300.00, 5000.00, 1000.00, 300.00, 5200.00, 'Paid'),
+(4, 1300.00, 100.00, 4000.00, 800.00, 250.00, 4850.00, 'Unpaid'),
+(5, 1000.00, 250.00, 300.00, 200.00, 100.00, 1450.00, 'Paid'),
+(6, 1100.00, 400.00, 800.00, 500.00, 180.00, 1980.00, 'Paid'),
+(7, 1700.00, 350.00, 1200.00, 600.00, 250.00, 2900.00, 'Unpaid'),
+(8, 1250.00, 200.00, 700.00, 300.00, 150.00, 2100.00, 'Paid'),
+(9, 1050.00, 180.00, 900.00, 250.00, 120.00, 2000.00, 'Unpaid'),
+(10, 1800.00, 500.00, 1000.00, 700.00, 200.00, 2600.00, 'Paid');
+
+insert into Bill_Tanvi values(11, 1700.00, 350.00, 1200.00, 600.00, 250.00, 2900.00, 'Paid'),
+(12, 1250.00, 200.00, 700.00, 300.00, 150.00, 2100.00, 'Unpaid'),
+(13, 1050.00, 180.00, 900.00, 250.00, 120.00, 2000.00, 'Paid'),
+(14, 1800.00, 500.00, 1000.00, 700.00, 200.00, 2600.00, 'Paid');
+
+insert into Bill_Tanvi values(15, 17700.00, 350.00, 1200.00, 600.00, 4000.00, 80000.00, 'Paid'),
+(16, 1250.00, 200.00, 700.00, 300.00, 150.00, 3300.00, 'Unpaid'),
+(17, 1050.00, 180.00, 900.00, 250.00, 120.00, 4000.00, 'Paid'),
+(18, 1800.00, 500.00, 1000.00, 700.00, 200.00, 2600.00, 'Unpaid');
+
+create procedure GetMonthlyDepartment2
+   @month int,
+   @year int
+as
+begin
+set nocount on;
+
+select d.DepartmentId, d.DepartmentName,
+count (a.AppointmentId) as TotalAppointment,
+count (distinct a.PatientId) as UniquePatients,
+isnull(sum(
+     case 
+       when a.Status='Completed'
+       then doc.ConsultationFee
+       else 0
+    end
+    ),0) as TotalConsultationRevenue
+from Department_tanvi d
+left join Doctor_tanvi doc
+on d.DepartmentId=doc.DepartmentId
+left join Appointment_tanvi2 a
+  on doc.DoctorId=a.DoctorId
+  and month(a.AppointementDate)=@month
+  and year(a.AppointementDate)=@year
+
+group by d.DepartmentId, d.DepartmentName
+order by d.DepartmentName;
+
+end
+
+exec GetMonthlyDepartment2 2,2026; 
+
+CREATE PROCEDURE GetPatientBillingHistory
+   @PatientId INT
+AS
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM Patient_tanvi WHERE PatientId = @PatientId)
+  BEGIN
+    RAISERROR('Patient Id does not exist.',16,1);
+    RETURN;
+  END;
+
+  ;WITH BillingData AS
+  (
+    SELECT 
+      a.AppointementDate,
+      d.DoctorName,
+      b.ConsultationAmount AS ConsultationCharge,
+      b.MedicineAmount AS TotalMedicineCost,
+      b.LabAmount AS TotalLabCost,
+      b.InsuranceDiscount,
+      b.GSTAmount,
+      b.FinalAmount
+    FROM Appointment_tanvi2 a
+    INNER JOIN Doctor_tanvi d ON a.DoctorId = d.DoctorId
+    INNER JOIN Bill_tanvi b ON a.AppointmentId = b.AppointmentId
+    WHERE a.PatientId = @PatientId
+      AND a.Status = 'Completed'
+  )
+  SELECT 
+    CONVERT(VARCHAR(12), AppointementDate, 106) AS AppointementDate,
+    DoctorName,
+    ConsultationCharge,
+    TotalMedicineCost,
+    TotalLabCost,
+    InsuranceDiscount,
+    GSTAmount,
+    FinalAmount,
+    0 AS SortOrder
+  FROM BillingData
+
+  UNION ALL
+
+  SELECT 
+    'Grand Total' AS AppointementDate,
+    NULL AS DoctorName,
+    SUM(ConsultationCharge),
+    SUM(TotalMedicineCost),
+    SUM(TotalLabCost),
+    SUM(InsuranceDiscount),
+    SUM(GSTAmount),
+    SUM(FinalAmount),
+    1 AS SortOrder
+  FROM BillingData
+
+  ORDER BY SortOrder, AppointementDate;
+END;
+
+exec GetPatientBillingHistory 6; 
+
+
+create procedure GetDoctorPerformanceSummary
+   @MinAppointments int
+as
+begin
+  ;with DoctorStats as
+  (
+     select d.DoctorId,d.DoctorName,
+     count (a.AppointmentId) as TotalAppointments,
+     sum(
+       case when a.Status='Completed' then 1
+       else 0
+       end
+     )as TotalCompletedAppointmtnts,
+
+     isnull(sum(
+     case when a.Status='Completed'
+     then b.FinalAmount
+     else 0
+     end
+     ),0) as TotalRevenue,
+
+     count(distinct
+     case when a.Status='Completed'
+     then mr.Diagnosis
+     else null
+     end
+  )as UniqueDiagnoses
+  from Doctor_tanvi d
+  left join Appointment_tanvi2 a on d.DoctorId=a.DoctorId
+  left join Bill_tanvi b on a.AppointmentId=b.AppointmentId
+  left join MedicalRecord_tanvi mr on a.AppointmentId=mr.AppointmentId
+  where d.isActive = 1
+  group by d.DoctorId, d.DoctorName
+  )
+
+  select DoctorId,DoctorName,TotalAppointments,TotalCompletedAppointmtnts,
+  case when TotalAppointments =0 then 0
+  else cast(
+  (TotalCompletedAppointmtnts*100.0)/TotalAppointments as decimal(5,2)
+  )
+  end as CompletionRatePercentage,
+  TotalRevenue,
+  UniqueDiagnoses
+  from DoctorStats
+  where TotalAppointments>=@MinAppointments
+  order by TotalRevenue desc;
+end;
+
+exec GetDoctorPerformanceSummary 2;
+
+
+create procedure GetUnusedMedicines
+as 
+begin
+   --Approach 1: Subquery method--
+   select m.MedicineId, m.MedicineName, m.Price 
+   from Medicine m
+   where not exists(
+   select 1
+   from Prescription_tanvi2 p
+   where p.MedicineId=m.MedicineId
+   );
+
+   --Approach 2: set operation method--
+   select m.MedicineId,m.MedicineName,m.Price
+   from Medicine m
+
+   except 
+   select m2.MedicineId,m2.MedicineName,m2.Price
+   from Medicine m2
+   inner join Prescription_tanvi2 p on m2.MedicineId=p.MedicineId;
+end;
+
+exec GetUnusedMedicines;
+
+
+
+CREATE PROCEDURE GetMonthlyRevenueReport
+AS
+BEGIN
+    DECLARE @Target DECIMAL(12,2) = 500000;
+
+    -- Step 1: Calculate monthly revenue and store in a temp table
+    ;WITH MonthlyRevenue AS
+    (
+        SELECT 
+            YEAR(a.AppointementDate) AS [Year],
+            MONTH(a.AppointementDate) AS [Month],
+            SUM(b.FinalAmount) AS TotalRevenue
+        FROM Bill_tanvi b
+        INNER JOIN Appointment_tanvi2 a
+            ON b.AppointmentId = a.AppointmentId
+        WHERE b.PaymentStatus = 'Paid'
+        GROUP BY YEAR(a.AppointementDate), MONTH(a.AppointementDate)
+    )
+    SELECT *
+    INTO #MonthlyRevenue
+    FROM MonthlyRevenue;
+
+    -- Step 2: Monthly report
+    SELECT 
+        DATENAME(MONTH, DATEFROMPARTS([Year],[Month],1)) + ' ' + CAST([Year] AS VARCHAR) AS MonthYear,
+        TotalRevenue,
+        CASE WHEN TotalRevenue >= @Target THEN 'Yes' ELSE 'No' END AS TargetMet,
+        CASE 
+            WHEN TotalRevenue >= @Target THEN TotalRevenue - @Target
+            ELSE @Target - TotalRevenue
+        END AS SurplusOrDeficit
+    FROM #MonthlyRevenue
+    ORDER BY [Year], [Month];
+
+    -- Step 3: Final summary
+    SELECT 
+        SUM(CASE WHEN TotalRevenue >= @Target THEN 1 ELSE 0 END) AS MonthsMetTarget,
+        SUM(CASE WHEN TotalRevenue < @Target THEN 1 ELSE 0 END) AS MonthsDidNotMeetTarget
+    FROM #MonthlyRevenue;
+
+    DROP TABLE #MonthlyRevenue;
+END;
+
+exec GetMonthlyRevenueReport;
+
+
+--Triggers--
+
+--1 Prevent Doctor Double-Booking 
+
+CREATE TRIGGER trg_PreventDoctorDoubleBooking
+ON Appointment_tanvi2
+AFTER INSERT
+AS
+BEGIN
+    IF EXISTS (
+        SELECT 1
+        FROM Appointment_tanvi2 a
+        JOIN inserted i
+            ON a.DoctorId = i.DoctorId
+           AND a.AppointementDate = i.AppointementDate
+           AND a.TimeSlot = i.TimeSlot
+        WHERE a.AppointmentId <> i.AppointmentId
+          AND a.Status IN ('Scheduled','Completed')
+    )
+    BEGIN
+        DECLARE @DoctorName VARCHAR(100),
+                @Date DATE,
+                @Time TIME,
+                @DateStr VARCHAR(12),
+                @TimeStr VARCHAR(8);
+
+        SELECT 
+            @DoctorName = d.DoctorName,
+            @Date = i.AppointementDate,
+            @Time = i.TimeSlot
+        FROM inserted i
+        JOIN Doctor_tanvi d 
+            ON i.DoctorId = d.DoctorId;
+
+        -- Convert values into strings before RAISERROR
+        SET @DateStr = CONVERT(VARCHAR(12), @Date, 106);
+        SET @TimeStr = CONVERT(VARCHAR(8), @Time, 108);
+
+        RAISERROR(
+            'Doctor %s already has an appointment scheduled at %s on %s.',
+            16,
+            1,
+            @DoctorName,
+            @TimeStr,
+            @DateStr
+        );
+
+        ROLLBACK TRANSACTION;
+    END
+END;
+
+
+--Auto-Generate Bill on Completion
+CREATE TRIGGER trg_AutoGenerateBill
+ON Appointment_tanvi2
+AFTER UPDATE
+AS
+BEGIN
+    -- Check if status changed to Completed
+    IF EXISTS (
+        SELECT 1
+        FROM inserted i
+        JOIN deleted d ON i.AppointmentId = d.AppointmentId
+        WHERE i.Status = 'Completed'
+          AND d.Status <> 'Completed'
+    )
+    BEGIN
+        -- Prevent duplicate bills
+        IF EXISTS (
+            SELECT 1
+            FROM Bill_tanvi b
+            JOIN inserted i ON b.AppointmentId = i.AppointmentId
+        )
+        BEGIN
+            RAISERROR('Bill already exists for this appointment.',16,1);
+            ROLLBACK TRANSACTION;
+            RETURN;
+        END;
+
+        -- Insert new bill
+        INSERT INTO Bill_tanvi
+        (
+            AppointmentId,
+            ConsultationAmount,
+            MedicineAmount,
+            LabAmount,
+            InsuranceDiscount,
+            GSTAmount,
+            FinalAmount,
+            PaymentStatus
+        )
+        SELECT  
+            a.AppointmentId,
+            d.ConsultationFee,
+            ISNULL(SUM(m.Price * p.Quantity),0) AS MedicineCost,
+            ISNULL(SUM(l.TestCost),0) AS LabCost,
+
+            CASE
+                WHEN ins.CoveragePercent IS NOT NULL
+                THEN ((ISNULL(SUM(m.Price * p.Quantity),0)
+                     + ISNULL(SUM(l.TestCost),0))
+                     * ins.CoveragePercent/100)
+                ELSE 0
+            END AS InsuranceDiscount,
+
+            (ISNULL(SUM(m.Price * p.Quantity),0) * 0.05
+             + ISNULL(SUM(l.TestCost),0) * 0.12) AS GSTAmount,
+
+            d.ConsultationFee
+            + ISNULL(SUM(m.Price * p.Quantity),0)
+            + ISNULL(SUM(l.TestCost),0)
+            - CASE 
+                WHEN ins.CoveragePercent IS NOT NULL
+                THEN ((ISNULL(SUM(m.Price * p.Quantity),0)
+                     + ISNULL(SUM(l.TestCost),0))
+                     * ins.CoveragePercent/100)
+                ELSE 0
+              END
+            + (ISNULL(SUM(m.Price * p.Quantity),0) * 0.05
+               + ISNULL(SUM(l.TestCost),0) * 0.12) AS FinalAmount,
+
+            'Unpaid'
+        FROM inserted i
+        JOIN Appointment_tanvi2 a ON i.AppointmentId = a.AppointmentId
+        JOIN Doctor_tanvi d ON a.DoctorId = d.DoctorId
+        LEFT JOIN MedicalRecord_tanvi mr ON a.AppointmentId = mr.AppointmentId
+        LEFT JOIN Prescription_tanvi2 p ON mr.RecordId = p.RecordId
+        LEFT JOIN Medicine m ON p.MedicineId = m.MedicineId
+        LEFT JOIN OrderLabTest_tanvi olt ON mr.RecordId = olt.RecordId
+        LEFT JOIN LabTest l ON olt.LabTestId = l.LabTestId
+        LEFT JOIN Insurance2 ins ON a.PatientId = ins.PatientId
+        WHERE i.Status = 'Completed'
+        GROUP BY a.AppointmentId, d.ConsultationFee, ins.CoveragePercent;
+    END
+END;
+
+update Appointment_tanvi2
+set Status='Completed'
+where AppointmentId=23;
+
+select * from Bill_Tanvi;
+
+
+--3 Flag Follow-Up on Abnormal Lab Result
+
+create trigger trg_FlagFollowUp
+on OrderLabTest_tanvi
+after insert,update
+as
+begin
+  update mr
+  set RequiredFollowUp=1
+  from MedicalRecord mr
+  join inserted i
+     on mr.RecordId=i.RecordId
+     where i.isAbnormal=1;
+
+     if exists(
+        select 1
+        from inserted i
+        left join MedicalRecord mr
+           on i.RecordId=mr.RecordId
+        where i.isAbnormal=1
+        and mr.RecordId is null
+
+     )
+
+     begin
+        print 'Warning: Abnormal lab result detected but no medical record exist yet. Follow-up cannot be flagged';
+    end
+end;
+
+insert into OrderLabTest_tanvi values(2,3,'High Colestrol',1);
+
+--User Defined Functions
+
+--C1 Patient Age Calculator 
+
+create function fn_GetPatientAge2
+(
+   @PatientId int
+)
+
+returns int
+as
+begin
+   declare @Age int
+   declare @DOB Date
+
+   select @DOB = DOB
+   from Patient_tanvi
+   where PatientId=@PatientId
+
+   if @DOB is null
+      return null
+
+   set @Age = DATEDIFF(YEAR,@DOB,GETDATE())
+
+   if DATEADD(YEAR,@Age,@DOB)>GETDATE()
+      set @Age=@Age-1
+
+return @Age
+
+end
+
+select dbo.fn_GetPatientAge2(1) as Age;
+
+
+--C2 Net Bill Calculator
+CREATE FUNCTION fn_CalculateNetBill2
+(
+    @ConsultationCharge DECIMAL(10,2),
+    @MedicineCharge DECIMAL(10,2),
+    @LabCharge DECIMAL(10,2),
+    @InsurancePercent DECIMAL(5,2)
+)
+RETURNS DECIMAL(10,2)
+AS
+BEGIN
+    DECLARE @SubTotal DECIMAL(10,2);
+    DECLARE @InsuranceDiscount DECIMAL(10,2);
+    DECLARE @GST DECIMAL(10,2);
+    DECLARE @FinalAmount DECIMAL(10,2);
+
+    -- Calculate subtotal
+    SET @SubTotal = @ConsultationCharge + @MedicineCharge + @LabCharge;
+
+    -- Correct insurance discount formula
+    SET @InsuranceDiscount = (@SubTotal * @InsurancePercent) / 100;
+
+    -- GST calculation (different rates for each component)
+    SET @GST =
+        (@ConsultationCharge * 0.18) +
+        (@MedicineCharge * 0.12) +
+        (@LabCharge * 0.05);
+
+    -- Final amount
+    SET @FinalAmount = (@SubTotal - @InsuranceDiscount) + @GST;
+
+    RETURN @FinalAmount;
+END;
+
+SELECT dbo.fn_CalculateNetBill(1600, 200, 700, 10) as NetBill;
+
+
+--Advance StandAlone Queries
+--D1 Top 3 Doctors per Department by Revenue 
+
+with DoctorRevenue as
+(
+    select 
+       d.DepartmentName,
+       doc.DoctorName,
+       doc.DoctorId,
+       sum(b.FinalAmount) as TotalRevenue
+    from Doctor_tanvi doc
+    join Department_tanvi d
+       on doc.DepartmentId=d.DepartmentId
+    join Appointment_tanvi2 a
+       on doc.DoctorId=a.DoctorId
+    join Bill_tanvi b
+       on a.AppointmentId=b.AppointmentId
+    where a.Status='Completed'
+    group by d.DepartmentName,doc.DoctorName,doc.DoctorId
+),
+
+RankedDoctors as
+(
+  select *,
+    RANK() OVER(
+         PARTITION by DepartmentName
+         order by TotalRevenue desc
+
+    )as DepartmentRank
+    from DoctorRevenue
+)
+
+select 
+   DepartmentName,
+   DoctorName,
+   TotalRevenue,
+   DepartmentRank
+   from RankedDoctors
+   where DepartmentRank<=3
+   order by DepartmentName,DepartmentRank;
+
+--D2 Running Monthly Revenue Total
+
+select 
+    format(AppointementDate,'MMMM yyyy') as MonthYear,
+    sum(FinalAmount) as MonthlyRevenue,
+
+    sum(sum(FinalAmount)) OVER(
+      order by YEAR(AppointementDate), MONTH(AppointementDate)
+
+    ) as RunningTotal
+
+    from Appointment_tanvi2 a
+    join Bill_tanvi b
+    on a.AppointmentId=b.AppointmentId
+    where a.Status='Completed'
+
+    group by YEAR(AppointementDate),MONTH(AppointementDate), format(AppointementDate,'MMMM yyyy')
+    order by YEAR(AppointementDate),MONTH(AppointementDate);
+
+
+    --Security Requirements
+
+    create role db_receptionist2;
+    create role db_doctor2;
+    create role db_lab_tech2;
+    create role db_billing2;
+
+    create view vw_DoctorPatientInfo
+    as 
+    select 
+       PatientId,
+       PatientName,
+       DOB
+    from Patient_tanvi;
+
+    --db_receptionist 
+    grant select,insert on Patient_tanvi to db_receptionist2;
+    grant select,insert on Appointment_tanvi2 to db_receptionist2;
+    
+    deny select,insert,update,delete on Bill_tanvi to db_receptionist2;
+    deny select,insert,update,delete on MedicalRecord_tanvi to db_receptionist2;
+    deny select,insert,update,delete on Prescription_tanvi2 to db_receptionist2;
+    deny select,insert,update,delete on LabOrders to db_receptionist2;
+
+    --db_doctor
+    grant select on vw_DoctorPatientInfo to db_doctor2;
+    grant select on Appointment_tanvi2 to db_doctor2;
+    grant insert,update on MedicalRecord_tanvi to db_doctor2;
+    grant insert,update on Prescription_tanvi2 to db_doctor2;
+    grant insert,update on LabOrders to db_doctor2;
+
+    deny insert,update,delete on Bill_tanvi to db_doctor2;
+
+    --db_lab_tech
+    create view vw_LabOrders
+    as
+    select
+       LabOrderId,
+       AppointmentId,
+       TestId,
+       Result
+    from LabOrders;
+
+    grant select on LabTest to db_lab_tech2;
+    grant select on vw_LabOrders to db_lab_tech2;
+    grant update (Result) on LabOrders to db_lab_tech2;
+
+    deny select on Patient_tanvi to db_lab_tech2;
+    deny select on Bill_tanvi to db_lab_tech2;
+
+    --db_billing
+     
+     create view vw_BillingPatientInfo
+     as
+     select 
+        p.PatientId,
+        p.PatientName,
+        i.CoveragePercent
+    from Patient_tanvi p
+    left join insurance2 i
+    on p.PatientId=i.PatientId;
+
+    grant select,insert,update on Bill_tanvi to db_billing2;
+    grant select on vw_BillingPatientInfo to db_billing2;
+    grant select on Appointment_tanvi2 to db_billing2;
+
+    Deny select,insert,update,delete on MedicalRecord_tanvi to db_billing2;
+    deny select,insert,update,delete on Prescription_tanvi2 to db_billing2;
+
+    --db_admin
+
+    grant CONTROL on DATABASE::JIBE_Main_Training to db_admin2;
+
