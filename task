@@ -1,0 +1,266 @@
+GET /reports/january-revenue
+export const januaryRevenue = async (req, res) => {
+
+const data = await AppDataSource
+.getRepository(Booking)
+.createQueryBuilder("booking")
+.leftJoin("booking.tier","tier")
+.leftJoin("tier.event","event")
+.select("SUM(tier.price * booking.quantity)","revenue")
+.where("event.startDate BETWEEN :start AND :end",{
+start:"2025-01-01",
+end:"2025-01-31"
+})
+.andWhere("booking.status='active'")
+.getRawOne()
+
+res.json(data)
+
+}
+
+
+export const topCityQ1 = async (req,res)=>{
+
+const data = await AppDataSource
+.getRepository(Booking)
+.createQueryBuilder("booking")
+.leftJoin("booking.tier","tier")
+.leftJoin("tier.event","event")
+.select("event.city","city")
+.addSelect("SUM(booking.quantity)","tickets")
+.where("event.startDate BETWEEN :s AND :e",{
+s:"2025-01-01",
+e:"2025-03-31"
+})
+.groupBy("event.city")
+.orderBy("tickets","DESC")
+.limit(1)
+.getRawMany()
+
+res.json(data)
+
+}
+
+
+export const topEvents = async (req,res)=>{
+
+const limit=req.query.limit || 3
+
+const data=await AppDataSource
+.getRepository(Booking)
+.createQueryBuilder("booking")
+.leftJoin("booking.tier","tier")
+.leftJoin("tier.event","event")
+.select("event.title","event")
+.addSelect("SUM(booking.quantity)","tickets")
+.groupBy("event.id")
+.orderBy("tickets","DESC")
+.limit(limit)
+.getRawMany()
+
+res.json(data)
+
+}
+
+
+export const eventTierBreakdown = async(req,res)=>{
+
+const id=req.params.eventId
+
+const data=await AppDataSource
+.getRepository(Booking)
+.createQueryBuilder("booking")
+.leftJoin("booking.tier","tier")
+.leftJoin("tier.event","event")
+.select("tier.name","tier")
+.addSelect("SUM(booking.quantity)","tickets")
+.addSelect("SUM(booking.quantity * tier.price)","revenue")
+.where("event.id=:id",{id})
+.groupBy("tier.id")
+.getRawMany()
+
+res.json(data)
+
+}
+
+
+export const lowSeatsEvents=async(req,res)=>{
+
+const data=await AppDataSource
+.getRepository(TicketTier)
+.createQueryBuilder("tier")
+.leftJoin("tier.event","event")
+.select("event.title","event")
+.addSelect("SUM(tier.availableSeats)","remaining")
+.groupBy("event.id")
+.having("SUM(tier.availableSeats)<10")
+.getRawMany()
+
+res.json(data)
+
+}
+
+
+export const avgPriceCity=async(req,res)=>{
+
+const data=await AppDataSource
+.getRepository(TicketTier)
+.createQueryBuilder("tier")
+.leftJoin("tier.event","event")
+.select("event.city","city")
+.addSelect("AVG(tier.price)","avgPrice")
+.where("event.status='published'")
+.groupBy("event.city")
+.getRawMany()
+
+res.json(data)
+
+}
+
+
+export const uniqueAttendees=async(req,res)=>{
+
+const id=req.params.id
+
+const data=await AppDataSource
+.getRepository(Booking)
+.createQueryBuilder("booking")
+.leftJoin("booking.tier","tier")
+.leftJoin("tier.event","event")
+.select("COUNT(DISTINCT booking.userId)","attendees")
+.where("event.organizerId=:id",{id})
+.getRawOne()
+
+res.json(data)
+
+}
+
+
+export const cancelledBookings=async(req,res)=>{
+
+const data=await AppDataSource
+.getRepository(Booking)
+.createQueryBuilder("booking")
+.leftJoin("booking.tier","tier")
+.leftJoin("tier.event","event")
+.select("event.title","event")
+.addSelect("COUNT(booking.id)","cancelledBookings")
+.addSelect("SUM(booking.quantity * tier.price)","lostRevenue")
+.where("booking.status='cancelled'")
+.groupBy("event.id")
+.getRawMany()
+
+res.json(data)
+
+}
+
+
+export const topTierRevenue=async(req,res)=>{
+
+const data=await AppDataSource
+.getRepository(Booking)
+.createQueryBuilder("booking")
+.leftJoin("booking.tier","tier")
+.select("tier.name","tierName")
+.addSelect("SUM(booking.quantity * tier.price)","revenue")
+.groupBy("tier.name")
+.orderBy("revenue","DESC")
+.getRawMany()
+
+res.json(data)
+
+}
+
+
+
+export const eventsNoBookings=async(req,res)=>{
+
+const data=await AppDataSource
+.getRepository(Event)
+.createQueryBuilder("event")
+.leftJoin("event.tiers","tier")
+.leftJoin("tier.bookings","booking")
+.where("event.status='published'")
+.groupBy("event.id")
+.having("COUNT(booking.id)=0")
+.orderBy("event.startDate","ASC")
+.getRawMany()
+
+res.json(data)
+
+}
+
+
+
+export const revenueTrend=async(req,res)=>{
+
+const data=await AppDataSource
+.getRepository(Booking)
+.createQueryBuilder("booking")
+.leftJoin("booking.tier","tier")
+.leftJoin("tier.event","event")
+.select("strftime('%m',event.startDate)","month")
+.addSelect("SUM(booking.quantity * tier.price)","revenue")
+.where("strftime('%Y',event.startDate)='2025'")
+.groupBy("month")
+.getRawMany()
+
+res.json(data)
+
+}
+
+
+
+export const topSpender=async(req,res)=>{
+
+const data=await AppDataSource
+.getRepository(Booking)
+.createQueryBuilder("booking")
+.leftJoin("booking.tier","tier")
+.leftJoin("booking.user","user")
+.select("user.name","user")
+.addSelect("SUM(booking.quantity * tier.price)","spent")
+.where("booking.status='active'")
+.groupBy("user.id")
+.orderBy("spent","DESC")
+.limit(1)
+.getRawMany()
+
+res.json(data)
+
+}
+
+
+
+export const seatPercentage=async(req,res)=>{
+
+const data=await AppDataSource
+.getRepository(TicketTier)
+.createQueryBuilder("tier")
+.leftJoin("tier.event","event")
+.select("event.title","event")
+.addSelect("SUM(tier.capacity - tier.availableSeats)","sold")
+.addSelect("SUM(tier.capacity)","capacity")
+.where("event.startDate BETWEEN date('now') AND date('now','+30 day')")
+.groupBy("event.id")
+.getRawMany()
+
+res.json(data)
+
+}
+
+
+
+router.get("/january-revenue",januaryRevenue)
+router.get("/top-city-q1",topCityQ1)
+router.get("/top-events",topEvents)
+router.get("/event-tiers/:id",eventTierBreakdown)
+router.get("/low-seats",lowSeatsEvents)
+router.get("/avg-price-city",avgPriceCity)
+router.get("/organiser/:id/unique-attendees",uniqueAttendees)
+router.get("/cancelled-bookings",cancelledBookings)
+router.get("/top-tier",topTierRevenue)
+router.get("/events-no-bookings",eventsNoBookings)
+router.get("/revenue-trend-2025",revenueTrend)
+router.get("/top-spender",topSpender)
+router.get("/upcoming-seat-percentage",seatPercentage)
